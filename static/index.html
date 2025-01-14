@@ -64,38 +64,64 @@
         </div>
 
         <div id="results" class="results"></div>
+        <button id="seeMoreBtn" onclick="loadMore()" style="display: none; margin: 20px auto; padding: 10px 20px;">
+            See More
     </div>
 
     <script>
-       let currentPage = 0;
-    let currentQuery = '';
+        let currentPage = 0;
+        let currentQuery = '';
+        let currentSearchType = '';
+        let currentFormData = null;
 
     async function searchByText() {
         currentPage = 0;
         currentQuery = document.getElementById('searchText').value;
+        currentSearchType = 'text';
+        currentFormData = null;
         await fetchResults();
     }
 
-    async function fetchResults() {
+    async function searchByImage() {
+        currentPage = 0;
+        currentSearchType = 'image';
+        const fileInput = document.getElementById('searchImage');
+        currentFormData = new FormData();
+        currentFormData.append('file', fileInput.files[0]);
+
+        await fetchResults(currentFormData);
+    }
+
+    async function fetchResults(formData = null) {
         try {
-            const response = await fetch(`/search_by_text/?query=${encodeURIComponent(currentQuery)}&page=${currentPage}`);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                let response;
+                if (currentSearchType === 'text') {
+                    response = await fetch(`/search-by-text/?query=${encodeURIComponent(currentQuery)}&page=${currentPage}`);
+                } else if (currentSearchType === 'image') {
+                    response = await fetch(`/search-by-image/?page=${currentPage}`, {
+                        method: 'POST',
+                        body: formData || currentFormData
+                    });
+                }
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                if (currentPage === 0) {
+                    // Clear results for new search
+                    document.getElementById('results').innerHTML = '';
+                }
+                displayResults(data);
+
+                // Show/hide "See More" button based on results
+                const seeMoreBtn = document.getElementById('seeMoreBtn');
+                seeMoreBtn.style.display = data.length === 5 ? 'block' : 'none';
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Search failed: ' + error.message);
             }
-            const data = await response.json();
-            if (currentPage === 0) {
-                // Clear results for new search
-                document.getElementById('results').innerHTML = '';
-            }
-            displayResults(data);
-            
-            // Show/hide "See More" button based on results
-            const seeMoreBtn = document.getElementById('seeMoreBtn');
-            seeMoreBtn.style.display = data.length === 5 ? 'block' : 'none';
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Search failed: ' + error.message);
-        }
     }
 
     async function loadMore() {
@@ -103,81 +129,59 @@
         await fetchResults();
     }
 
-        async function searchByImage() {
-            const fileInput = document.getElementById('searchImage');
-            const formData = new FormData();
-            formData.append('file', fileInput.files[0]);
-
-            try {
-                const response = await fetch('/search_by_image/', {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await response.json();
-                displayResults(data);
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
-
-        function displayResults(results) {
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = '';
+    function displayResults(results) {
+        const resultsDiv = document.getElementById('results');
             
-            results.forEach(item => {
-                const resultItem = document.createElement('div');
-                resultItem.className = 'result-item';
+        results.forEach(item => {
+            const resultItem = document.createElement('div');
+            resultItem.className = 'result-item';
                 
-                // Thumbnail
-                const img = document.createElement('img');
-                img.src = item.images[0].large;
-                img.alt = item.title;
+            // Thumbnail
+            const img = document.createElement('img');
+            img.src = item.images[0].large;
+            img.alt = item.title;
                 
-                // Product info container
-                const productInfo = document.createElement('div');
-                productInfo.className = 'product-info';
+            // Product info container
+            const productInfo = document.createElement('div');
+            productInfo.className = 'product-info';
                 
-                // Title
-                const title = document.createElement('h3');
-                title.className = 'title';
-                title.textContent = item.title;
+            // Title
+            const title = document.createElement('h3');
+            title.className = 'title';
+            title.textContent = item.title;
                 
-                // Rating container
-                const rating = document.createElement('div');
-                rating.className = 'rating';
+            // Rating container
+            const rating = document.createElement('div');
+            rating.className = 'rating';
 
-                // Average rating number
-                const averageRating = document.createElement('span');
-                averageRating.className = 'average-rating';
-                averageRating.textContent = item.average_rating.toFixed(1);
+            // Average rating number
+            const averageRating = document.createElement('span');
+            averageRating.className = 'average-rating';
+            averageRating.textContent = item.average_rating.toFixed(1);
                 
-                // Stars
-                const stars = document.createElement('span');
-                stars.innerHTML = '★'.repeat(Math.round(item.average_rating)) + 
-                                '☆'.repeat(5 - Math.round(item.average_rating));
+            // Stars
+            const stars = document.createElement('span');
+            stars.innerHTML = '★'.repeat(Math.round(item.average_rating)) + 
+                            '☆'.repeat(5 - Math.round(item.average_rating));
                 
-                // Rating number
-                const ratingNumber = document.createElement('span');
-                ratingNumber.className = 'rating-number';
-                ratingNumber.textContent = `(${item.rating_number} reviews)`;
+            // Rating number
+            const ratingNumber = document.createElement('span');
+            ratingNumber.className = 'rating-number';
+            ratingNumber.textContent = `(${item.rating_number} reviews)`;
                 
-                // Append elements
-                rating.appendChild(averageRating);
-                rating.appendChild(stars);
-                rating.appendChild(ratingNumber);
+            // Append elements
+            rating.appendChild(averageRating);
+            rating.appendChild(stars);
+            rating.appendChild(ratingNumber);
                 
-                productInfo.appendChild(title);
-                productInfo.appendChild(rating);
+            productInfo.appendChild(title);
+            productInfo.appendChild(rating);
                 
-                resultItem.appendChild(img);
-                resultItem.appendChild(productInfo);
-                resultsDiv.appendChild(resultItem);
-            });
-        }
+            resultItem.appendChild(img);
+            resultItem.appendChild(productInfo);
+            resultsDiv.appendChild(resultItem);
+        });
+    }
     </script>
-    <div id="results" class="results"></div>
-    <button id="seeMoreBtn" onclick="loadMore()" style="display: none; margin: 20px auto; padding: 10px 20px;">
-        See More
-    </button>
 </body>
 </html>
