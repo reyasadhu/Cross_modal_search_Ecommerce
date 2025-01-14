@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+        }
+        .results {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .result-item {
+            display: flex;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .result-item img {
+            width: 150px;
+            height: 150px;
+            object-fit: contain;
+            margin-right: 20px;
+        }
+        .product-info {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .title {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 0;
+        }
+        .rating {
+            color: #f8c51c;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .rating-number {
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Fashion Image Search</h1>
+        
+        <div class="search-section">
+            <h2>Text Search</h2>
+            <input type="text" id="searchText" placeholder="Enter search terms...">
+            <button onclick="searchByText()">Search</button>
+        </div>
+
+        <div class="search-section">
+            <h2>Image Search</h2>
+            <input type="file" id="searchImage" accept="image/*">
+            <button onclick="searchByImage()">Search</button>
+        </div>
+
+        <div id="results" class="results"></div>
+    </div>
+
+    <script>
+       let currentPage = 0;
+    let currentQuery = '';
+
+    async function searchByText() {
+        currentPage = 0;
+        currentQuery = document.getElementById('searchText').value;
+        await fetchResults();
+    }
+
+    async function fetchResults() {
+        try {
+            const response = await fetch(`/search_by_text/?query=${encodeURIComponent(currentQuery)}&page=${currentPage}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            if (currentPage === 0) {
+                // Clear results for new search
+                document.getElementById('results').innerHTML = '';
+            }
+            displayResults(data);
+            
+            // Show/hide "See More" button based on results
+            const seeMoreBtn = document.getElementById('seeMoreBtn');
+            seeMoreBtn.style.display = data.length === 5 ? 'block' : 'none';
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Search failed: ' + error.message);
+        }
+    }
+
+    async function loadMore() {
+        currentPage += 1;
+        await fetchResults();
+    }
+
+        async function searchByImage() {
+            const fileInput = document.getElementById('searchImage');
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const response = await fetch('/search_by_image/', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                displayResults(data);
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function displayResults(results) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+            
+            results.forEach(item => {
+                const resultItem = document.createElement('div');
+                resultItem.className = 'result-item';
+                
+                // Thumbnail
+                const img = document.createElement('img');
+                img.src = item.images[0].large;
+                img.alt = item.title;
+                
+                // Product info container
+                const productInfo = document.createElement('div');
+                productInfo.className = 'product-info';
+                
+                // Title
+                const title = document.createElement('h3');
+                title.className = 'title';
+                title.textContent = item.title;
+                
+                // Rating container
+                const rating = document.createElement('div');
+                rating.className = 'rating';
+
+                // Average rating number
+                const averageRating = document.createElement('span');
+                averageRating.className = 'average-rating';
+                averageRating.textContent = item.average_rating.toFixed(1);
+                
+                // Stars
+                const stars = document.createElement('span');
+                stars.innerHTML = '★'.repeat(Math.round(item.average_rating)) + 
+                                '☆'.repeat(5 - Math.round(item.average_rating));
+                
+                // Rating number
+                const ratingNumber = document.createElement('span');
+                ratingNumber.className = 'rating-number';
+                ratingNumber.textContent = `(${item.rating_number} reviews)`;
+                
+                // Append elements
+                rating.appendChild(averageRating);
+                rating.appendChild(stars);
+                rating.appendChild(ratingNumber);
+                
+                productInfo.appendChild(title);
+                productInfo.appendChild(rating);
+                
+                resultItem.appendChild(img);
+                resultItem.appendChild(productInfo);
+                resultsDiv.appendChild(resultItem);
+            });
+        }
+    </script>
+    <div id="results" class="results"></div>
+    <button id="seeMoreBtn" onclick="loadMore()" style="display: none; margin: 20px auto; padding: 10px 20px;">
+        See More
+    </button>
+</body>
+</html>
