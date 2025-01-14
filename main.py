@@ -87,7 +87,7 @@ def get_text_embedding(text: str):
         embedding = model.get_text_features(**inputs).cpu().numpy()
     return embedding
 
-@app.get("/search_by_text/")
+@app.get("/search-by-text/")
 async def search_by_text(query: str , page: int = 0):
     try:
         query_embedding = get_text_embedding(query)
@@ -110,16 +110,21 @@ async def search_by_text(query: str , page: int = 0):
         logger.error(f"Error in search_by_text: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/search_by_image/")
-async def search_by_image(file: UploadFile = File(...)):
+@app.post("/search-by-image/")
+async def search_by_image(file: UploadFile = File(...), page: int = 0):
     try:
         image = Image.open(io.BytesIO(await file.read())).convert("RGB")
         query_embedding = get_image_embedding(image).tolist()
-        results = index.query(vector=query_embedding, top_k=5)
+        results = index.query(vector=query_embedding, top_k=5 * (page + 1))
         response = []
-        for match in results["matches"]:
+        start_idx = page * 5
+        end_idx = start_idx + 5
+        matches = results["matches"][start_idx:end_idx]
+
+        for match in matches:
             metadata = collection.find_one({"_id": int(match['id'])})
-            response.append(metadata)
+            if metadata:
+                response.append(metadata)
         return JSONResponse(content=response)
     except Exception as e:
         logger.error(f"Error in search_by_image: {e}")
