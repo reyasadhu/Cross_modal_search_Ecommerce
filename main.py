@@ -93,12 +93,12 @@ async def search_by_text(query: str , page: int = 0):
         query_embedding = get_text_embedding(query)
         results = index.query(
             vector=query_embedding.tolist(), 
-            top_k=5 * (page + 1)  # Get more results based on page
+            top_k=10 * (page + 1)  # Get more results based on page
         )
         response = []
         # Get only the new batch of results
-        start_idx = page * 5
-        end_idx = start_idx + 5
+        start_idx = page * 10
+        end_idx = start_idx + 10
         matches = results["matches"][start_idx:end_idx]
         
         for match in matches:
@@ -129,6 +129,32 @@ async def search_by_image(file: UploadFile = File(...), page: int = 0):
     except Exception as e:
         logger.error(f"Error in search_by_image: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
+    
+@app.get("/product/{product_id}")
+async def get_product_details(product_id: int):
+    try:
+        # Fetch product from MongoDB
+        
+        product = collection.find_one({"_id": product_id})
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+        
+        # Format response
+        response = {
+            "title": product.get("title", ""),
+            "images": product.get("images", []),  # Array of image URLs
+            "features": product.get("features", []),
+            "details": product.get("details", {}),
+            "store": product.get("store", ""),
+            "description": product.get("description", "")
+        }
+        
+        
+        return JSONResponse(content=response)
+        
+    except Exception as e:
+        logger.error(f"Error fetching product details: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
     
 @app.get("/health")
 async def health_check():
