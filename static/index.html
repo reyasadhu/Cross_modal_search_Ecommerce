@@ -8,32 +8,48 @@
             padding: 20px;
         }
         .results {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 20px;
+        padding: 20px 0;
         }
+
         .result-item {
             display: flex;
+            flex-direction: column;
             border: 1px solid #ddd;
             padding: 15px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
         }
+
         .result-item img {
-            width: 150px;
-            height: 150px;
+            width: 100%;
+            height: 200px;
             object-fit: contain;
-            margin-right: 20px;
+            margin-bottom: 10px;
         }
+
         .product-info {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
+        }
+        .store-name {
+        color: #565959;
+        font-size: 12px;
+        margin-bottom: 4px;
         }
         .title {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
             margin: 0;
+            /* For text overflow */
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
         .rating {
             color: #f8c51c;
@@ -45,16 +61,164 @@
             color: #666;
             font-size: 14px;
         }
+        .product-info {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .image-carousel {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 20px;
+        position: relative;
+        width: 100%;
+        height: 400px;
+        }
+
+        #carouselImages {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .carousel-image {
+            max-width: 100%;
+            max-height: 400px;
+            object-fit: contain;
+            margin: auto;
+        }
+
+        .carousel-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            pointer-events: none;
+        }
+
+        .nav-button {
+            background: rgba(255,255,255,0.8);
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 50%;
+            pointer-events: auto;
+            z-index: 2;
+        }
+
+        .nav-button.next {
+            margin-left: auto;
+        }
+
+        .product-details-container {
+        font-family: Arial, sans-serif;
+        border-top: 1px solid #ccc;
+        padding: 15px;
+        margin-top: 10px;
+        }
+
+        .product-details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .product-details-table th {
+            text-align: left;
+            font-weight: bold;
+            padding-right: 10px;
+            vertical-align: top;
+            font-size: 12 px;
+        }
+
+        .product-details-table td {
+            padding: 3px 0;
+            font-size: 12 px;
+        }
+        .suggestions {
+        margin-top: 15px;
+        }
+
+        .suggestions p {
+            color: #565959;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .suggestion-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .suggestion-buttons button {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 15px;
+            background: #f8f8f8;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .suggestion-buttons button:hover {
+            background: #eee;
+        }
+
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Fashion Image Search</h1>
-        
+
         <div class="search-section">
             <h2>Text Search</h2>
             <input type="text" id="searchText" placeholder="Enter search terms...">
             <button onclick="searchByText()">Search</button>
+            
+            <div class="suggestions">
+                <p>Suggestions:</p>
+                <div class="suggestion-buttons">
+                    <button onclick="searchSuggestion('floral dress')">floral dress</button>
+                    <button onclick="searchSuggestion('black skirt')">black skirt</button>
+                    <button onclick="searchSuggestion('cartoon tshirts')">cartoon tshirts</button>
+                </div>
+            </div>
         </div>
 
         <div class="search-section">
@@ -66,6 +230,26 @@
         <div id="results" class="results"></div>
         <button id="seeMoreBtn" onclick="loadMore()" style="display: none; margin: 20px auto; padding: 10px 20px;">
             See More
+        </button>
+    </div>
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="image-carousel">
+                <div id="carouselImages"></div>
+                <div class="carousel-nav">
+                    <button class="nav-button prev">&lt;</button>
+                    <button class="nav-button next">&gt;</button>
+                </div>
+            </div>
+                <h2 id="productTitle"></h2>
+                <div id="productFeatures"></div>
+                <div id="productDetails" class="product-details-container">
+                    <h2>Product Details</h2>
+                </div>
+                <p id="productDescription"></p>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -73,6 +257,18 @@
         let currentQuery = '';
         let currentSearchType = '';
         let currentFormData = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('searchText').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchByText();
+            }
+        });
+         // Image search Enter key handler
+         document.getElementById('searchImage').addEventListener('change', () => {
+        searchByImage();
+        });
+        });
 
     async function searchByText() {
         currentPage = 0;
@@ -117,7 +313,7 @@
 
                 // Show/hide "See More" button based on results
                 const seeMoreBtn = document.getElementById('seeMoreBtn');
-                seeMoreBtn.style.display = data.length === 5 ? 'block' : 'none';
+                seeMoreBtn.style.display = data.length === 10 ? 'block' : 'none';
             } catch (error) {
                 console.error('Error:', error);
                 alert('Search failed: ' + error.message);
@@ -129,12 +325,21 @@
         await fetchResults();
     }
 
+    function searchSuggestion(suggestion) {
+    currentPage = 0;
+    currentQuery = suggestion;
+    currentSearchType = 'text';
+    currentFormData = null;
+    fetchResults();
+    }
+
     function displayResults(results) {
         const resultsDiv = document.getElementById('results');
             
         results.forEach(item => {
             const resultItem = document.createElement('div');
             resultItem.className = 'result-item';
+            resultItem.onclick = () => showProductDetails(item._id);
                 
             // Thumbnail
             const img = document.createElement('img');
@@ -145,7 +350,15 @@
             const productInfo = document.createElement('div');
             productInfo.className = 'product-info';
                 
-            // Title
+            // Title section
+            const titleContainer = document.createElement('div');
+            
+            // Store name
+            const storeName = document.createElement('div');
+            storeName.className = 'store-name';
+            storeName.textContent = item.store;
+            
+            // title
             const title = document.createElement('h3');
             title.className = 'title';
             title.textContent = item.title;
@@ -174,7 +387,9 @@
             rating.appendChild(stars);
             rating.appendChild(ratingNumber);
                 
-            productInfo.appendChild(title);
+            titleContainer.appendChild(storeName);
+            titleContainer.appendChild(title);
+            productInfo.appendChild(titleContainer);
             productInfo.appendChild(rating);
                 
             resultItem.appendChild(img);
@@ -182,6 +397,107 @@
             resultsDiv.appendChild(resultItem);
         });
     }
+    async function showProductDetails(productId) {
+        const modal = document.getElementById('productModal');
+        try {
+            const response = await fetch(`/product/${productId}`);
+            const product = await response.json();
+
+            
+            // Populate modal content
+            // Add store name and title
+            const storeName = product.store;
+            const productTitle = product.title;
+
+            const titleSection = document.getElementById('productTitle');
+            titleSection.innerHTML = `
+                <div style="color: #565959; font-size: 14px; margin-bottom: 8px;">
+                    ${storeName}
+                </div>
+                <div>${productTitle}</div>
+            `;
+            if (product.description && product.description.length > 0) {
+            document.getElementById('productDescription').innerHTML = `
+                <h3 style="margin-bottom: 15px;">Product Description</h3>
+                <p>${product.description}</p>
+            `;
+        } else {
+            document.getElementById('productDescription').innerHTML = '';
+        }
+            
+            // Create image carousel with large images
+            const carouselContainer = document.getElementById('carouselImages');
+            carouselContainer.innerHTML = product.images
+                .map(imgObj => `<img src="${imgObj.large}" class="carousel-image" alt="${product.title}">`)
+                .join('');
+
+            // Format and show product details
+            const detailsContainer = document.getElementById('productDetails');
+            if (product.details && Object.keys(product.details).length > 0) {
+                let detailsHTML = '<h3 style="margin-bottom: 18px;">Product Details</h3>';
+                detailsHTML += '<table class="product-details-table">';
+                
+                for (const [key, value] of Object.entries(product.details)) {
+                    detailsHTML += `
+                        <tr>
+                            <th>${key.replace(/_/g, ' ').toUpperCase()} :</th>
+                            <td>${value}</td>
+                        </tr>
+                    `;
+                }
+                
+                detailsHTML += '</table>';
+                detailsContainer.innerHTML = detailsHTML;
+}
+            
+            
+            // Show features
+            document.getElementById('productFeatures').innerHTML = 
+                `<ul>${product.features.map(f => `<li>${f}</li>`).join('')}</ul>`;
+            
+            // Close modal when clicking X or outside
+            document.querySelector('.close-modal').addEventListener('click', () => {
+            document.getElementById('productModal').style.display = 'none';
+            });
+
+            // Close modal when clicking outside the modal content
+            window.addEventListener('click', (event) => {
+                const modal = document.getElementById('productModal');
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+            
+            modal.style.display = 'block';
+            showImage(0); // Show first image initially
+
+            
+        } catch (error) {
+            console.error('Error fetching product details:', error);
+        }
+    }
+    
+    let currentImageIndex = 0;
+
+    function showImage(index) {
+        const images = document.querySelectorAll('.carousel-image');
+        images.forEach((img, i) => {
+            img.style.display = i === index ? 'block' : 'none';
+        });
+    }
+
+    document.querySelector('.nav-button.prev').onclick = () => {
+        const images = document.querySelectorAll('.carousel-image');
+        currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
+        showImage(currentImageIndex);
+    }
+
+    document.querySelector('.nav-button.next').onclick = () => {
+        const images = document.querySelectorAll('.carousel-image');
+        currentImageIndex = (currentImageIndex + 1) % images.length;
+        showImage(currentImageIndex);
+    }
+    showImage(0);
     </script>
 </body>
 </html>
