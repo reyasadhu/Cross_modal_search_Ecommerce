@@ -1,6 +1,11 @@
 # Cross_Modal_Search_Ecommerce
 A fashion image retrival system utilizing Contrastive Language-Image Pre-training (CLIP) models that enables users to search fashion products through both text descriptions and image uploads.
 
+## Live Demo
+Try out the application here: [Fashion Search Demo](https://text-and-visual-search-amazon.onrender.com/)
+- Search using text descriptions
+- Upload images to find similar products
+
 ### How to use the Dockerfile
 - #### Build the Docker image
   - ```docker build -t fastapi-app .```
