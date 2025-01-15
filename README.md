@@ -9,6 +9,12 @@ Try out the application here: [Fashion Search Demo](https://text-and-visual-sear
 - First request will be slower due to model loading
 - Local deployment provides much faster response times (~1s)
 
+## Run Locally
+To run locally:
+- Set up the API Key for mongoDB and Pinecone in the .env file.
+- To install dependencies run: `pip install --no-cache-dir -r requirements.txt`
+- To start the server run: `uvicorn main:app --host 0.0.0.0 --port 8000`
+
 ## Dockerfile Usage
 - #### Build the Docker image
   - ```docker build -t fastapi-app .```
