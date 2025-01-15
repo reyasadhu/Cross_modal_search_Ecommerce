@@ -208,15 +208,15 @@
 
         <div class="search-section">
             <h2>Text Search</h2>
-            <input type="text" id="searchText" placeholder="Enter search terms...">
+            <input type="text" id="searchText" placeholder="Search Any Fashion...">
             <button onclick="searchByText()">Search</button>
             
             <div class="suggestions">
                 <p>Suggestions:</p>
                 <div class="suggestion-buttons">
-                    <button onclick="searchSuggestion('floral dress')">floral dress</button>
-                    <button onclick="searchSuggestion('black skirt')">black skirt</button>
-                    <button onclick="searchSuggestion('cartoon tshirts')">cartoon tshirts</button>
+                    <button onclick="searchSuggestion('deep neck dress with belt')">deep neck dress with belt</button>
+                    <button onclick="searchSuggestion('dresses for funeral')">dresses for funeral</button>
+                    <button onclick="searchSuggestion('garfield tshirts orange')">garfield tshirts orange</button>
                 </div>
             </div>
         </div>
@@ -409,6 +409,7 @@
             const storeName = product.store;
             const productTitle = product.title;
 
+            // Populate modal content with store name and original title
             const titleSection = document.getElementById('productTitle');
             titleSection.innerHTML = `
                 <div style="color: #565959; font-size: 14px; margin-bottom: 8px;">
@@ -497,6 +498,8 @@
         currentImageIndex = (currentImageIndex + 1) % images.length;
         showImage(currentImageIndex);
     }
+
+    // Add to showProductDetails function after creating carousel images
     showImage(0);
     </script>
 </body>
