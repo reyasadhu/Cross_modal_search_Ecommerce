@@ -3,10 +3,13 @@ A fashion image retrival system utilizing Contrastive Language-Image Pre-trainin
 
 ## Live Demo
 Try out the application here: [Fashion Search Demo](https://text-and-visual-search-amazon.onrender.com/)
-- Search using text descriptions
-- Upload images to find similar products
 
-### How to use the Dockerfile
+⚠️ **Note**: The demo is hosted on Render's free tier:
+- Cold starts may take 1-2 minutes when server is inactive
+- First request will be slower due to model loading
+- Local deployment provides much faster response times (~1s)
+
+## Dockerfile Usage
 - #### Build the Docker image
   - ```docker build -t fastapi-app .```
 
