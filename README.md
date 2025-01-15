@@ -1,5 +1,31 @@
 # Cross_Modal_Search_Ecommerce
-A fashion image retrival system utilizing Contrastive Language-Image Pre-training (CLIP) models to perform text-to-image and image-to-image searches.
+A fashion image retrival system utilizing Contrastive Language-Image Pre-training (CLIP) models that enables users to search fashion products through both text descriptions and image uploads.
+
+## Features
+
+- **Text-based Search**: Search products using natural language descriptions
+- **Image-based Search**: Upload images to find visually similar products
+- **Product Details**: 
+  - High-resolution product images with carousel
+  - Product features and specifications
+  - Store information
+  - Detailed product descriptions
+- **Responsive UI**: Amazon-inspired user interface with grid layout
+
+## Tech Stack
+
+- **Backend**:
+  - FastAPI - Web framework
+  - MongoDB - Product metadata storage
+  - Pinecone - Vector database for similarity search
+  - CLIP Model - Image and text embeddings
+  - PyTorch - Deep learning framework
+
+- **Frontend**:
+  - Vanilla JavaScript
+  - HTML5/CSS3
+  - Responsive grid layout
+  - Image carousel
 
 ### How to use the Dockerfile
 - #### Build the Docker image
@@ -7,3 +33,4 @@ A fashion image retrival system utilizing Contrastive Language-Image Pre-trainin
 
 - #### Run the Docker container with environment variables from .env file
   - ```docker run -d -p 8000:8000 --env-file .env --name fastapi-container fastapi-app```
+
