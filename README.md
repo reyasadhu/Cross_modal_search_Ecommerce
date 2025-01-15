@@ -1,4 +1,5 @@
-# Text-and-visual-search-amazon
+# Cross_Modal_Search_Ecommerce
+A fashion image retrival system utilizing Contrastive Language-Image Pre-training (CLIP) models to perform text-to-image and image-to-image searches.
 
 ### How to use the Dockerfile
 - #### Build the Docker image
