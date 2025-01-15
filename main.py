@@ -11,6 +11,9 @@ import io
 import os
 import numpy as np
 import logging
+import time
+from functools import wraps
+from typing import Callable
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -45,7 +48,7 @@ index_name = "clip-multimodal-search"
 index = pc.Index(name=index_name)
 
 # Load CLIP model and processor
-model_id = "openai/clip-vit-base-patch32"
+model_id = "patrickjohncyh/fashion-clip"
 
 def get_device():
     if torch.cuda.is_available():
@@ -87,7 +90,20 @@ def get_text_embedding(text: str):
         embedding = model.get_text_features(**inputs).cpu().numpy()
     return embedding
 
+
+def timer_decorator(func: Callable):
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = await func(*args, **kwargs)
+        end_time = time.time()
+        search_time = (end_time - start_time) * 1000  # Convert to milliseconds
+        logger.info(f"{func.__name__} took {search_time:.2f}ms")
+        return result
+    return wrapper
+
 @app.get("/search-by-text/")
+@timer_decorator
 async def search_by_text(query: str , page: int = 0):
     try:
         query_embedding = get_text_embedding(query)
@@ -111,14 +127,15 @@ async def search_by_text(query: str , page: int = 0):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/search-by-image/")
+@timer_decorator
 async def search_by_image(file: UploadFile = File(...), page: int = 0):
     try:
         image = Image.open(io.BytesIO(await file.read())).convert("RGB")
         query_embedding = get_image_embedding(image).tolist()
-        results = index.query(vector=query_embedding, top_k=5 * (page + 1))
+        results = index.query(vector=query_embedding, top_k=10 * (page + 1))
         response = []
-        start_idx = page * 5
-        end_idx = start_idx + 5
+        start_idx = page * 10
+        end_idx = start_idx + 10
         matches = results["matches"][start_idx:end_idx]
 
         for match in matches:
@@ -134,7 +151,6 @@ async def search_by_image(file: UploadFile = File(...), page: int = 0):
 async def get_product_details(product_id: int):
     try:
         # Fetch product from MongoDB
-        
         product = collection.find_one({"_id": product_id})
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
